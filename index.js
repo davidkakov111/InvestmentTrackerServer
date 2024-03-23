@@ -1,4 +1,6 @@
 const { saveTransaction, getTransactions } = require('./database.js');
+const { SignUp } = require('./Auth/SignUp.js')
+const { SignIn } = require('./Auth/SignIn.js')
 
 const express = require('express');
 const cors = require('cors');
@@ -9,6 +11,26 @@ app.use(cors({
 }));
 
 const PORT = 8080;
+
+app.post('/SaveUser', (req, res) => {
+  async function api(){
+    const result = await SignUp(req.body)
+    let statusCode = 200
+    if (result === "Server error") statusCode = 500
+    res.status(statusCode).send({result: result});
+  }
+  api()
+});
+
+app.post('/SignInUser', (req, res) => {
+  async function api(){
+    const result = await SignIn(req.body)
+    let statusCode = 200
+    if (result === "Server error") statusCode = 500
+    res.status(statusCode).send({result: result});
+  }
+  api()
+});
 
 app.post('/SaveTransaction', (req, res) => {
   async function api(){

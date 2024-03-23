@@ -64,6 +64,46 @@ async function saveTransaction(newTransaction) {
   }
 }
 
+async function saveUser(newUser) {
+  const client = await pool.connect();
+  try {
+    await client.query(
+      "INSERT INTO users (email, password) VALUES ($1, $2)", 
+      [newUser.email, newUser.password]
+    );
+    return "Success";
+  } catch (error) {
+    // Check if the email already exists 
+    if (error.code === "23505") {
+      return 'SignIn';
+    }
+    console.error(
+      "An error occurred while saving the new user record: ",
+      error
+    );
+    return "Server error";
+  } finally {
+    client.release();
+  }
+}
+
+async function getUserByEmail(email) {
+  const client = await pool.connect();
+  try {
+    const { rows } = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (rows.length < 1) return 'SignUp';
+    return rows;
+  } catch (error) {
+    console.error(
+      "Error during query:",
+      error
+    );
+    return "Server error";
+  } finally {
+    client.release();
+  }
+}
+
 async function createInvestmentTrackerTable() {
   const client = await pool.connect();
   try {
@@ -90,7 +130,28 @@ async function createInvestmentTrackerTable() {
   }
 }
 
+async function createUsersTable() {
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL
+      );
+    `);
+    return "success";
+  } catch (error) {
+    console.error("Error during table creation:", error);
+    return "Server error";
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   getTransactions,
-  saveTransaction
+  saveTransaction,
+  saveUser,
+  getUserByEmail
 };
