@@ -1,7 +1,7 @@
 const { getUserByEmail } = require('../database.js');
 const bcrypt = require('bcrypt');
 
-async function SignIn(newUser) {
+async function SignIn(newUser, res) {
     const dbResponse = await getUserByEmail(newUser.email)
     if (typeof dbResponse === 'string') return dbResponse;
 
