@@ -9,10 +9,10 @@ const pool = new Pool({
   port: process.env.PORT
 });
 
-async function getTransactions() {
+async function getTransactionsByEmail(email) {
   const client = await pool.connect();
   try {
-    const res = await client.query("SELECT * FROM investmenttracker")
+    const res = await client.query("SELECT * FROM investmenttracker WHERE user_email = $1", [email])
     return res.rows;
   } catch (error) {
     console.error("Error durring query:", error);
@@ -28,9 +28,10 @@ async function saveTransaction(newTransaction) {
     let sql;
     let values;
     if (newTransaction.operation === 'TRANSFER') {
-      sql = "INSERT INTO investmenttracker (operation, what, frominstrument, toinstrument, feeinron, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7)";
+      sql = "INSERT INTO investmenttracker (operation, user_email, what, frominstrument, toinstrument, feeinron, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
       values = [
         newTransaction.operation,
+        newTransaction.user_email,
         newTransaction.what,
         newTransaction.frominstrument,
         newTransaction.toinstrument,
@@ -39,9 +40,10 @@ async function saveTransaction(newTransaction) {
         newTransaction.timestamp
       ];
     } else {
-      sql = "INSERT INTO investmenttracker (operation, frominstrument, toinstrument, frominron, toinron, feeinron, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+      sql = "INSERT INTO investmenttracker (operation, user_email, frominstrument, toinstrument, frominron, toinron, feeinron, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
       values = [
         newTransaction.operation,
+        newTransaction.user_email,
         newTransaction.frominstrument,
         newTransaction.toinstrument,
         newTransaction.frominron,
@@ -110,6 +112,7 @@ async function createInvestmentTrackerTable() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS investmenttracker (
         id SERIAL PRIMARY KEY,
+        user_email VARCHAR(255) REFERENCES users(email),
         operation VARCHAR(10) NOT NULL CHECK (operation IN ('BUY', 'SELL', 'TRANSFER', 'EXCHANGE')),
         what TEXT,
         frominstrument TEXT,
@@ -150,7 +153,7 @@ async function createUsersTable() {
 }
 
 module.exports = {
-  getTransactions,
+  getTransactionsByEmail,
   saveTransaction,
   saveUser,
   getUserByEmail

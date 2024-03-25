@@ -1,4 +1,4 @@
-const { saveTransaction, getTransactions } = require("./database.js");
+const { saveTransaction, getTransactionsByEmail } = require("./database.js");
 const { SignUp } = require("./Auth/SignUp.js");
 const { SignIn } = require("./Auth/SignIn.js");
 const { createJWT, getJWT } = require("./Auth/JWTToken.js");
@@ -24,7 +24,6 @@ app.use(express.urlencoded({ extended: false }));
 app.post("/SaveUser", (req, res) => {
   async function api() {
     const result = await SignUp(req.body);
-
     if (result === "Success") {
       const token = createJWT(req.body.email)
       // Set JWT as a cookie
@@ -43,14 +42,12 @@ app.post("/SignInUser", (req, res) => {
   async function api() {
     const newUser = req.body
     const result = await SignIn(newUser);
-
     if (result === "Success") {
       const token = createJWT(newUser.email)
       // Set JWT as a cookie
       res.status(200).cookie('JWTToken', token).json({ result: result });
       return
     }
-
     let statusCode = 200;
     if (result === "Server error") statusCode = 500;
     res.status(statusCode).send({ result: result });
@@ -69,19 +66,31 @@ app.get("/GetUserContext", (req, res) => {
 
 app.post("/SaveTransaction", (req, res) => {
   async function api() {
-    const result = await saveTransaction(req.body);
-    let statusCode = 500;
-    if (result === "Success") statusCode = 200;
-    res.status(statusCode).send();
+    const email = getJWT(req);
+    if (email === 'Unauthorized') {
+      res.status(500).send();
+    } else {
+      const result = await saveTransaction({...req.body, user_email: email});
+      let statusCode = 500;
+      if (result === "Success") statusCode = 200;
+      res.status(statusCode).send();
+    }
   }
   api();
 });
 
 app.get("/GetTransactions", (req, res) => {
   async function api() {
-    const transactions = await getTransactions();
+    const result = getJWT(req);
+    let transactions;
     let statusCode = 500;
-    if (transactions !== "Server error") statusCode = 200;
+
+    if (result === 'Unauthorized') {
+      transactions = result
+    } else {
+      transactions = await getTransactionsByEmail(result);
+      if (transactions !== "Server error") statusCode = 200;
+    }
     res.status(statusCode).json(transactions);
   }
   api();
