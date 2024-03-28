@@ -28,19 +28,19 @@ async function saveTransaction(newTransaction) {
     let sql;
     let values;
     if (newTransaction.operation === 'TRANSFER') {
-      sql = "INSERT INTO investmenttracker (operation, user_email, what, frominstrument, toinstrument, feeinron, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+      sql = "INSERT INTO investmenttracker (operation, user_email, what, frominstrument, toinstrument, fees, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
       values = [
         newTransaction.operation,
         newTransaction.user_email,
         newTransaction.what,
         newTransaction.frominstrument,
         newTransaction.toinstrument,
-        newTransaction.feeinron,
+        newTransaction.fees,
         newTransaction.amount,
         newTransaction.timestamp
       ];
     } else {
-      sql = "INSERT INTO investmenttracker (operation, user_email, frominstrument, toinstrument, frominron, toinron, feeinron, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+      sql = "INSERT INTO investmenttracker (operation, user_email, frominstrument, toinstrument, frominron, toinron, fees, amount, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
       values = [
         newTransaction.operation,
         newTransaction.user_email,
@@ -48,7 +48,7 @@ async function saveTransaction(newTransaction) {
         newTransaction.toinstrument,
         newTransaction.frominron,
         newTransaction.toinron,
-        newTransaction.feeinron,
+        newTransaction.fees,
         newTransaction.amount,
         newTransaction.timestamp
       ];
@@ -109,6 +109,8 @@ async function getUserByEmail(email) {
 async function createInvestmentTrackerTable() {
   const client = await pool.connect();
   try {
+    // what field structure: [cryptoName, String(txLink)]
+    // fees field structure: [{ instrument: '', amount: '', priceInRON:''}, ...]
     await client.query(`
       CREATE TABLE IF NOT EXISTS investmenttracker (
         id SERIAL PRIMARY KEY,
@@ -119,7 +121,7 @@ async function createInvestmentTrackerTable() {
         toinstrument TEXT,
         frominron NUMERIC,
         toinron NUMERIC,
-        feeinron NUMERIC NOT NULL,
+        fees TEXT NOT NULL,
         amount NUMERIC NOT NULL,
         timestamp NUMERIC NOT NULL
       );
