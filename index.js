@@ -20,10 +20,7 @@ app.use(
 
 // middleware
 app.use(express.json());
-app.use(cookieParser(null, {
-  SameSite: 'None',
-  secure: true
-}));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 
 const PORT = 8080;

@@ -23,7 +23,10 @@ async function SignInUser(req, res) {
     if (result === "Success") {
       const token = createJWT(newUser.email)
       // Set JWT as a cookie
-      res.status(200).cookie('JWTToken', token).json({ result: result });
+      res.cookie('JWTToken', token, {
+        sameSite: 'None', 
+        secure: true,     
+      }).status(200).json({ result: result });
       return
     }
     let statusCode = 200;
