@@ -22,7 +22,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser(null, {
   sameSite: 'none',
-  secure: true
+  // secure: true
 }));
 app.use(express.urlencoded({ extended: false }));
 
