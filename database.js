@@ -6,7 +6,8 @@ const pool = new Pool({
   host: process.env.HOST,
   database: process.env.DATABASE,
   password: process.env.PASSWORD,
-  port: process.env.PORT
+  port: process.env.PORT,
+  ssl: true
 });
 
 async function getTransactionsByEmail(email) {
@@ -70,7 +71,7 @@ async function saveUser(newUser) {
   const client = await pool.connect();
   try {
     await client.query(
-      "INSERT INTO users (email, password) VALUES ($1, $2)", 
+      "INSERT INTO investerusers (email, password) VALUES ($1, $2)", 
       [newUser.email, newUser.password]
     );
     return "Success";
@@ -92,7 +93,7 @@ async function saveUser(newUser) {
 async function getUserByEmail(email) {
   const client = await pool.connect();
   try {
-    const { rows } = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    const { rows } = await client.query('SELECT * FROM investerusers WHERE email = $1', [email]);
     if (rows.length < 1) return 'SignUp';
     return rows;
   } catch (error) {
@@ -114,7 +115,7 @@ async function createInvestmentTrackerTable() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS investmenttracker (
         id SERIAL PRIMARY KEY,
-        user_email VARCHAR(255) REFERENCES users(email),
+        user_email VARCHAR(255) REFERENCES investerusers(email),
         operation VARCHAR(10) NOT NULL CHECK (operation IN ('BUY', 'SELL', 'TRANSFER', 'EXCHANGE')),
         what TEXT,
         frominstrument TEXT,
@@ -135,11 +136,11 @@ async function createInvestmentTrackerTable() {
   }
 }
 
-async function createUsersTable() {
+async function createInvesterUsersTable() {
   const client = await pool.connect();
   try {
     await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS investerusers (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL
