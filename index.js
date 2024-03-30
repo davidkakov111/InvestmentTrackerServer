@@ -21,7 +21,7 @@ app.use(
 // middleware
 app.use(express.json());
 app.use(cookieParser(null, {
-  SameSite: 'none',
+  SameSite: 'None',
   secure: true
 }));
 app.use(express.urlencoded({ extended: false }));
