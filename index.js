@@ -5,7 +5,7 @@ const {
   SaveTransaction,
   GetTransactions,
 } = require("./IndexFunctions.js");
-require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -20,8 +20,8 @@ app.use(
 
 // middleware
 app.use(express.json());
-app.use(cookieParser(process.env.JWT_SECRET, {
-  SameSitae: 'none',
+app.use(cookieParser(null, {
+  SameSite: 'none',
   secure: true
 }));
 app.use(express.urlencoded({ extended: false }));
