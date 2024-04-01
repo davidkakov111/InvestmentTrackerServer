@@ -67,6 +67,61 @@ async function saveTransaction(newTransaction) {
   }
 }
 
+async function updateTransaction(updatedTransaction, email) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query("SELECT user_email FROM investmenttracker WHERE id = $1", [updatedTransaction.id]);
+    if (res.rows[0].user_email === email) {
+      await client.query(`UPDATE investmenttracker SET operation = $1, what = $2, 
+        frominstrument = $3, toinstrument = $4, fees = $5, amount = $6, timestamp = $7, 
+        frominron = $8, toinron = $9 WHERE id = $10`, 
+        [
+          updatedTransaction.operation,
+          updatedTransaction.what,
+          updatedTransaction.frominstrument,
+          updatedTransaction.toinstrument,
+          updatedTransaction.fees,
+          updatedTransaction.amount,
+          updatedTransaction.timestamp,
+          updatedTransaction.frominron,
+          updatedTransaction.toinron,
+          updatedTransaction.id
+        ]
+      );
+      return "Success";
+    } 
+    return "Unauthorized";
+  } catch (error) {
+    console.error(
+      "An error occurred while updating the new transaction record: ",
+      error
+    );
+    return "Server error";
+  } finally {
+    client.release();
+  }
+}
+
+async function deleteTransaction(id, email) {
+  const client = await pool.connect();
+  try {
+    const res = await client.query("SELECT user_email FROM investmenttracker WHERE id = $1", [id]);
+    if (res.rows[0].user_email === email) {
+      await client.query('DELETE FROM investmenttracker WHERE id = $1', [id]);
+      return "Success";
+    } 
+    return "Unauthorized";
+  } catch (error) {
+    console.error(
+      "An error occurred while deleting a transaction record: ",
+      error
+    );
+    return "Server error";
+  } finally {
+    client.release();
+  }
+}
+
 async function saveUser(newUser) {
   const client = await pool.connect();
   try {
@@ -159,5 +214,7 @@ module.exports = {
   getTransactionsByEmail,
   saveTransaction,
   saveUser,
-  getUserByEmail
+  getUserByEmail,
+  updateTransaction,
+  deleteTransaction,
 };

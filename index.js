@@ -4,6 +4,8 @@ const {
   GetUserContext,
   SaveTransaction,
   GetTransactions,
+  UpdateTransaction,
+  DeleteTransaction,
 } = require("./IndexFunctions.js");
 
 const express = require("express");
@@ -37,6 +39,14 @@ app.get("/GetUserContext", (req, res) => {
 
 app.post("/SaveTransaction", (req, res) => {
   SaveTransaction(req, res);
+});
+
+app.post("/UpdateTransaction", (req, res) => {
+  UpdateTransaction(req, res);
+});
+
+app.post("/DeleteTransaction", (req, res) => {
+  DeleteTransaction(req, res);
 });
 
 app.get("/GetTransactions", (req, res) => {

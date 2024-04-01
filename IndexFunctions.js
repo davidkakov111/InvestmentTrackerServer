@@ -1,4 +1,4 @@
-const { saveTransaction, getTransactionsByEmail } = require("./database.js");
+const { saveTransaction, getTransactionsByEmail, updateTransaction, deleteTransaction } = require("./database.js");
 const { SignUp } = require("./Auth/SignUp.js");
 const { SignIn } = require("./Auth/SignIn.js");
 const { createJWT, getJWT } = require("./Auth/JWTToken.js");
@@ -50,6 +50,32 @@ async function SaveTransaction(req, res) {
   }
 }
 
+async function UpdateTransaction(req, res) {
+  const email = getJWT(req);
+  if (email === 'Unauthorized') {
+    res.status(401).send();
+  } else {
+    const result = await updateTransaction(req.body, email);
+    let statusCode = 500;
+    if (result === "Success") statusCode = 200;
+    if (result === "Unauthorized") statusCode = 401;
+    res.status(statusCode).send();
+  }
+}
+
+async function DeleteTransaction(req, res) {
+  const email = getJWT(req);
+  if (email === 'Unauthorized') {
+    res.status(401).send();
+  } else {
+    const result = await deleteTransaction(req.body.id, email);
+    let statusCode = 500;
+    if (result === "Success") statusCode = 200;
+    if (result === "Unauthorized") statusCode = 401;
+    res.status(statusCode).send();
+  }
+}
+
 async function GetTransactions(req, res) {
   const result = getJWT(req);
   let transactions;
@@ -70,4 +96,6 @@ module.exports = {
   GetUserContext,
   SaveTransaction,
   GetTransactions,
+  UpdateTransaction,
+  DeleteTransaction,
 };
