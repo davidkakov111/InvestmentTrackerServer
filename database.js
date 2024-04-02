@@ -122,6 +122,22 @@ async function deleteTransaction(id, email) {
   }
 }
 
+async function deleteAllTransactionHistory(email) {
+  const client = await pool.connect();
+  try {
+    await client.query('DELETE FROM investmenttracker WHERE user_email = $1', [email]);
+    return "Success";
+  } catch (error) {
+    console.error(
+      "An error occurred while deleting the transaction history: ",
+      error
+    );
+    return "Server error";
+  } finally {
+    client.release();
+  }
+}
+
 async function saveUser(newUser) {
   const client = await pool.connect();
   try {
@@ -217,4 +233,5 @@ module.exports = {
   getUserByEmail,
   updateTransaction,
   deleteTransaction,
+  deleteAllTransactionHistory,
 };

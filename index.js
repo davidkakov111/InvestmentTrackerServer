@@ -6,6 +6,7 @@ const {
   GetTransactions,
   UpdateTransaction,
   DeleteTransaction,
+  DeleteAllTransactionHistory,
 } = require("./IndexFunctions.js");
 
 const express = require("express");
@@ -47,6 +48,10 @@ app.post("/UpdateTransaction", (req, res) => {
 
 app.post("/DeleteTransaction", (req, res) => {
   DeleteTransaction(req, res);
+});
+
+app.post("/DeleteAllTransactionHistory", (req, res) => {
+  DeleteAllTransactionHistory(req, res);
 });
 
 app.get("/GetTransactions", (req, res) => {

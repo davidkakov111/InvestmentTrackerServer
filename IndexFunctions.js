@@ -1,7 +1,8 @@
-const { saveTransaction, getTransactionsByEmail, updateTransaction, deleteTransaction } = require("./database.js");
+const { saveTransaction, getTransactionsByEmail, updateTransaction, deleteTransaction, deleteAllTransactionHistory, getUserByEmail } = require("./database.js");
 const { SignUp } = require("./Auth/SignUp.js");
 const { SignIn } = require("./Auth/SignIn.js");
 const { createJWT, getJWT } = require("./Auth/JWTToken.js");
+const bcrypt = require('bcrypt');
 
 async function SaveUser(req, res) {
   const result = await SignUp(req.body);
@@ -76,6 +77,31 @@ async function DeleteTransaction(req, res) {
   }
 }
 
+async function DeleteAllTransactionHistory(req, res) {
+  const email = getJWT(req);
+  if (email === "Unauthorized") {
+    res.status(401).send({response: email});
+  } else {
+    const dbResponse = await getUserByEmail(email)
+    if (dbResponse === "Server error") {
+      res.status(500).send({response: dbResponse});
+      return
+    } else if (dbResponse === "SignUp") {
+      res.status(401).send({response: "Unauthorized"})
+      return 
+    }
+    const passwordCorrect = await bcrypt.compare(req.body.password, dbResponse[0].password);
+    if (!passwordCorrect) {
+      res.status(401).send({response: "Access denied"})
+      return 
+    }
+    const result = await deleteAllTransactionHistory(email);
+    let statusCode = 500;
+    if (result === "Success") statusCode = 200;
+    res.status(statusCode).send({response: result});
+  }
+}
+
 async function GetTransactions(req, res) {
   const result = getJWT(req);
   let transactions;
@@ -98,4 +124,5 @@ module.exports = {
   GetTransactions,
   UpdateTransaction,
   DeleteTransaction,
+  DeleteAllTransactionHistory,
 };
